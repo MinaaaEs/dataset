@@ -1,3 +1,4 @@
+library(ggfortify)
 #reading-in
 #library(readr)
 path <- "https://raw.githubusercontent.com/MinaaaEs/dataset/main/dataset.csv"
@@ -36,8 +37,10 @@ assetsreb <- function(mydat){
   we <- rep(1/Nx, Nx)
   shares[1,] <- as.numeric(we*p0 /(mydat[1,]))
   myasset[1,] <- mydat[1,]*shares[1,]
- 
-  for(i in 2:(nrow(mydat))){
+  myasset[2,] <- mydat[2,]*shares[1,] 
+  shares[2,] <- as.numeric(we*sum(myasset[2,])/mydat[2,])
+  myasset[2,] <- mydat[2,]*shares[2,]
+  for(i in 3:(nrow(mydat))){
     myasset[i,] <- mydat[i,]*shares[i-1,] 
     shares[i,] <- as.numeric(we*sum(myasset[i,])/mydat[i,])
     myasset[i,] <- mydat[i,]*shares[i,]
@@ -48,9 +51,8 @@ assetsreb <- function(mydat){
 }
 
 myassetrb <- assetsreb(dataxts)
-
-equitycurve <- rowSums(myassetrb)
-summary(weightsrb <- myassetrb/equitycurve)
+assetsrb <- assetsreb(dataxts)
+equitycurve <- rowSums(assetsrb)
 
 equity <- xts(equitycurve, order.by = data$Date)
 autoplot(equity)+xlab("Date")+ylab("Portfolio Value")+ggtitle("Development of the equity curve")
