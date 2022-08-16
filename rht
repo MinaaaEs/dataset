@@ -1,0 +1,46 @@
+
+
+library(shiny)
+library(rhandsontable)
+
+change_hook <- "function(el,x) {
+  rht = this.hot;
+  cellchngs = [];
+  afterChange = function(changes, source) {
+    $.each(changes, function (index, elem) {
+      change = elem;                  /* gather the row, col, old, new values */
+      if(change[2] !== change[3]) {   /* if old isn't the same as new */
+        cellchg = ({rowind: change[0], colind: change[1]});
+        cellchngs.push(cellchg);      /* add row and column indicies to array */
+      }
+    });
+    $.each(cellchngs, function(ind, elem) { 
+      td = rht.getCell(elem['rowind'], elem['colind']); /* get the html element */
+      td.style.background = 'cyan';                     /* set background color */
+    });
+  }
+  rht.addHook('afterChange', afterChange);  /* add event to table */
+}"
+
+ui <- div(actionButton(inputId = "reset_button",label = "Reset")
+          ,rHandsontableOutput(outputId="mtcars"))
+
+
+server <- function(input, output, session) {
+  
+  
+  #reset <- reactiveVal(0)
+  output$mtcars <- renderRHandsontable({
+    #r = reset()
+    rht = rhandsontable(mtcars,stretchH="all",height=300)
+    #reset(0)
+    htmlwidgets::onRender(rht,change_hook)
+  })
+
+  # observeEvent(input$reset_button,
+  #              {
+  #                reset(1)
+  #              })
+}
+
+shinyApp(ui, server)
